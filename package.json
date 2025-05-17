@@ -1,5 +1,22 @@
 {
+  "name": "EcoFood-React-P2-VA.CV.RM",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build", 
+    "serve": "vite preview", 
+    "start": "vite" 
+  },
   "dependencies": {
-    "firebase": "^11.7.3"
+    "firebase": "^11.7.3",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "sweetalert2": "^11.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^2.0.0",
+    "vite": "^4.0.0"
   }
 }
