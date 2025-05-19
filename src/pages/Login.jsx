@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../services/firebase";
 import Swal from "sweetalert2";
+import { getUserData } from "../services/userService"; // ✅ importar la función
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,10 +18,16 @@ export default function Login() {
     e.preventDefault();
     try {
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
-      Swal.fire("Bienvenido", "Has iniciado sesión correctamente", "success");
+
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+
+      // ✅ obtener datos desde Firestore
+      const datos = await getUserData(cred.user.uid);
+
+      console.log("Bienvenido", datos.nombre, "Tipo:", datos.tipo);
+
+      Swal.fire("Bienvenido", `Hola ${datos.nombre}`, "success");
       navigate("/home");
-      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       Swal.fire("Error", "Credenciales incorrectas o fallo de red", "error");
     }
