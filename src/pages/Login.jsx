@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; 
+import { useNavigate, Link } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
   setPersistence,
@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../services/firebase";
 import Swal from "sweetalert2";
+import { getUserData } from "../services/firestore";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,12 +18,31 @@ export default function Login() {
     e.preventDefault();
     try {
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
-      Swal.fire("Bienvenido", "Has iniciado sesión correctamente", "success");
-      navigate("/home");
+
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+
+      if (!cred.user.emailVerified) {
+        Swal.fire(
+          "Verificación requerida",
+          "Debes verificar tu correo antes de ingresar.",
+          "warning"
+        );
+        return;
+      }
+
+      const datos = await getUserData(cred.user.uid);
+
+      if (datos.tipo === "admin") {
+        navigate("/admin/dashboard");
+      } else if (datos.tipo === "cliente") {
+        navigate("/cliente/dashboard");
+      } else {
+        Swal.fire("Error", "Tipo de usuario no reconocido", "error");
+      }
+
     } catch (error) {
       console.error("Error en login:", error);
-      Swal.fire("Error", error.message, "error");
+      Swal.fire("Error", "Credenciales incorrectas", "error");
     }
   };
 
@@ -55,7 +75,6 @@ export default function Login() {
         </button>
       </form>
 
-      {/* enlace para recuperar la contraseña */}
       <div className="mt-3 text-center">
         <Link to="/recuperar" className="text-decoration-none">
           ¿Olvidaste tu contraseña?

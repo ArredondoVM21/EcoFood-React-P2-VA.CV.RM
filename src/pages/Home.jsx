@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import CardProducto from '../components/CardProducto';
 import CerrarSesion from '../components/CerrarSesion';
 import { getUserData } from "../services/userService";
-import { useAuth } from "../context/AuthContext";  // asumo que aquí tienes el usuario
+import { useAuth } from "../context/AuthContext"; 
 
 function Home() {
-  const { user } = useAuth();  // obtener usuario del contexto
+  const { user } = useAuth();
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {

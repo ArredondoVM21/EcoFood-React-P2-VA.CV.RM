@@ -1,27 +1,53 @@
 import { useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../services/firebase";
-import { AuthContext } from "./AuthContext"; // Asegúrate de tener este archivo separado
+import { AuthContext } from "./AuthContext";
+import { getUserData } from "../services/userService";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Espera a que Firebase confirme usuario
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false); // Termina cuando se confirma usuario (o null)
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        try {
+          const data = await getUserData(firebaseUser.uid);
+          console.log("[AuthProvider] Datos del usuario:", data);
+          setUserData(data);
+        } catch (error) {
+          console.error("Error cargando datos de Firestore:", error);
+          setUserData(null);
+        }
+      } else {
+        setUser(null);
+        setUserData(null);
+      }
+      setLoading(false);
     });
 
-    return () => unsubscribe(); // Limpieza al desmontar
+    return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setUserData(null);
+  };
+
   if (loading) {
-    return <div>Cargando autenticación...</div>; // También puedes usar un spinner
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg">Cargando autenticación...</p>
+      </div>
+    );
   }
 
   return (
-    <AuthContext.Provider value={{ user }}>
+    <AuthContext.Provider value={{ user, userData, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );
