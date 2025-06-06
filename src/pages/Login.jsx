@@ -16,9 +16,9 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     try {
       await setPersistence(auth, browserLocalPersistence);
-
       const cred = await signInWithEmailAndPassword(auth, email, password);
 
       if (!cred.user.emailVerified) {
@@ -31,17 +31,25 @@ export default function Login() {
       }
 
       const datos = await getUserData(cred.user.uid);
+      console.log("Datos de usuario:", datos);
 
-      if (datos.tipo === "admin") {
-        navigate("/admin/dashboard");
-      } else if (datos.tipo === "cliente") {
-        navigate("/cliente/dashboard");
-      } else {
-        Swal.fire("Error", "Tipo de usuario no reconocido", "error");
-      }
-
+      setTimeout(() => {
+        switch (datos.tipo) {
+          case "admin":
+            navigate("/admin/dashboard", { replace: true });
+            break;
+          case "cliente":
+            navigate("/cliente/dashboard", { replace: true });
+            break;
+          case "empresa":
+            navigate("/empresa/perfil", { replace: true });
+            break;
+          default:
+            Swal.fire("Error", "Tipo de usuario no reconocido", "error");
+        }
+      }, 0);
     } catch (error) {
-      console.error("Error en login:", error);
+      console.error("Error en login:", error.code, error.message);
       Swal.fire("Error", "Credenciales incorrectas", "error");
     }
   };
@@ -57,6 +65,7 @@ export default function Login() {
             className="form-control"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={60}
             required
           />
         </div>
@@ -67,6 +76,7 @@ export default function Login() {
             className="form-control"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={20}
             required
           />
         </div>
@@ -74,7 +84,6 @@ export default function Login() {
           Iniciar Sesión
         </button>
       </form>
-
       <div className="mt-3 text-center">
         <Link to="/recuperar" className="text-decoration-none">
           ¿Olvidaste tu contraseña?

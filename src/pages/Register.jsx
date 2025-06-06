@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../services/firebase";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { saveUserData } from "../services/userService";
 
 export default function Register() {
@@ -13,13 +13,18 @@ export default function Register() {
   const [comuna, setComuna] = useState("");
   const [telefono, setTelefono] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
-  const tipo = "cliente";
+  const [tipo, setTipo] = useState("cliente");
   const navigate = useNavigate();
+
+  const comunasCuartaRegion = [
+    "La Serena", "Coquimbo", "Andacollo", "Vicuña", "Paihuano", "La Higuera",
+    "Ovalle", "Monte Patria", "Combarbalá", "Punitaqui", "Río Hurtado",
+    "Illapel", "Salamanca", "Los Vilos", "Canela"
+  ];
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // validacion de contraseña robusta (8 caracteres, con letra y número)
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$#!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       return Swal.fire("Contraseña débil", "La contraseña debe tener al menos 8 caracteres, incluir letras y números.", "warning");
@@ -27,8 +32,7 @@ export default function Register() {
 
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // guardar datos adicionales
+
       await saveUserData(cred.user.uid, {
         nombre,
         tipo,
@@ -38,9 +42,8 @@ export default function Register() {
         telefono,
       });
 
-      // enviar un correo de verificación
       await sendEmailVerification(cred.user);
-      
+
       Swal.fire(
         "Registrado",
         "Usuario creado correctamente. Verifica tu correo electrónico.",
@@ -58,7 +61,7 @@ export default function Register() {
 
   return (
     <div className="container mt-5">
-      <h2>Registro de Cliente</h2>
+      <h2>Bienvenido, crea tu nueva cuenta</h2>
       <form onSubmit={handleRegister}>
         <div className="mb-3">
           <label className="form-label">Nombre completo</label>
@@ -67,6 +70,7 @@ export default function Register() {
             className="form-control"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
+            maxLength={50}
             required
           />
         </div>
@@ -78,6 +82,7 @@ export default function Register() {
             className="form-control"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={60}
             required
           />
         </div>
@@ -90,6 +95,7 @@ export default function Register() {
               className="form-control"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={20}
               required
             />
             <button
@@ -102,7 +108,7 @@ export default function Register() {
             </button>
           </div>
           <div className="form-text">
-            Debe tener al menos 8 caracteres, incluir letras y números.
+            La contraseña debe tener al menos 8 caracteres, mayúsculas y minúsculas, números y al menos un carácter especial.
           </div>
         </div>
 
@@ -113,19 +119,24 @@ export default function Register() {
             className="form-control"
             value={direccion}
             onChange={(e) => setDireccion(e.target.value)}
+            maxLength={60}
             required
           />
         </div>
 
         <div className="mb-3">
           <label className="form-label">Comuna</label>
-          <input
-            type="text"
-            className="form-control"
+          <select
+            className="form-select"
             value={comuna}
             onChange={(e) => setComuna(e.target.value)}
             required
-          />
+          >
+            <option value="">Selecciona una comuna</option>
+            {comunasCuartaRegion.map((c, idx) => (
+              <option key={idx} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
         <div className="mb-3">
@@ -135,23 +146,34 @@ export default function Register() {
             className="form-control"
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
+            maxLength={15}
           />
         </div>
 
         <div className="mb-3">
           <label className="form-label">Tipo de usuario</label>
-          <input
-            type="text"
-            className="form-control"
-            value="cliente"
-            readOnly
-          />
+          <select
+            className="form-select"
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value)}
+            required
+          >
+            <option value="cliente">Cliente</option>
+            <option value="admin">Administrador</option>
+          </select>
         </div>
 
         <button type="submit" className="btn btn-success">
           Registrarse
         </button>
       </form>
+
+      <div className="mt-3 text-center">
+        <Link to="/login" className="text-decoration-none">
+          ¿Ya tienes Cuenta? Inicia Sesión
+        </Link>
+      </div>
     </div>
+    
   );
 }
