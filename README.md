@@ -6,9 +6,11 @@ Aplicación web tipo Single Page Application (SPA) desarrollada con React y Fire
 2. Abrir una terminal en la raíz del proyecto descomprimido.
 
 3. Ejecutar los siguientes comandos para instalar las dependencias:
+
 npm install
 npm install dayjs
 npm install react-bootstrap bootstrap
 
-4. Finalmente, para iniciar la aplicación:
+5. Finalmente, para iniciar la aplicación:
+
 npm start
