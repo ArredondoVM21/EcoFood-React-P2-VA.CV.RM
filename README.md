@@ -8,7 +8,9 @@ Aplicación web tipo Single Page Application (SPA) desarrollada con React y Fire
 3. Ejecutar los siguientes comandos para instalar las dependencias:
 
 *npm install
+
 *npm install dayjs
+
 *npm install react-bootstrap bootstrap
 
 5. Finalmente, para iniciar la aplicación:
