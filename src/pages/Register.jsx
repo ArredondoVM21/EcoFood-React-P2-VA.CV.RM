@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { auth } from "../services/firebase";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
@@ -17,29 +20,87 @@ export default function Register() {
   const navigate = useNavigate();
 
   const comunasCuartaRegion = [
-    "La Serena", "Coquimbo", "Andacollo", "Vicuña", "Paihuano", "La Higuera",
-    "Ovalle", "Monte Patria", "Combarbalá", "Punitaqui", "Río Hurtado",
-    "Illapel", "Salamanca", "Los Vilos", "Canela"
+    "La Serena",
+    "Coquimbo",
+    "Andacollo",
+    "Vicuña",
+    "Paihuano",
+    "La Higuera",
+    "Ovalle",
+    "Monte Patria",
+    "Combarbalá",
+    "Punitaqui",
+    "Río Hurtado",
+    "Illapel",
+    "Salamanca",
+    "Los Vilos",
+    "Canela",
   ];
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    const cleanNombre = nombre.trim();
+    const cleanDireccion = direccion.trim();
+    const cleanComuna = comuna.trim();
+    const cleanTelefono = telefono.trim();
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (
+      !cleanNombre ||
+      !cleanDireccion ||
+      !cleanComuna ||
+      !cleanEmail ||
+      !cleanPassword ||
+      !tipo
+    ) {
+      return Swal.fire(
+        "Campos obligatorios",
+        "Completa todos los campos obligatorios.",
+        "warning"
+      );
+    }
+
+    if (cleanTelefono && !/^[0-9+\-\s()]{8,}$/.test(cleanTelefono)) {
+      return Swal.fire(
+        "Teléfono inválido",
+        "Ingresa un teléfono válido (mínimo 8 dígitos).",
+        "warning"
+      );
+    }
+
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$#!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return Swal.fire("Contraseña débil", "La contraseña debe tener al menos 8 caracteres, incluir letras y números.", "warning");
+    if (!passwordRegex.test(cleanPassword)) {
+      return Swal.fire(
+        "Contraseña débil",
+        "La contraseña debe tener al menos 8 caracteres, incluir letras y números.",
+        "warning"
+      );
+    }
+
+    if (!["cliente", "admin"].includes(tipo)) {
+      return Swal.fire(
+        "Tipo inválido",
+        "El tipo de usuario no es válido",
+        "error"
+      );
     }
 
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(
+        auth,
+        cleanEmail,
+        cleanPassword
+      );
 
       await saveUserData(cred.user.uid, {
-        nombre,
+        nombre: cleanNombre,
         tipo,
-        email,
-        direccion,
-        comuna,
-        telefono,
+        email: cleanEmail,
+        direccion: cleanDireccion,
+        comuna: cleanComuna,
+        telefono: cleanTelefono,
       });
 
       await sendEmailVerification(cred.user);
@@ -108,7 +169,8 @@ export default function Register() {
             </button>
           </div>
           <div className="form-text">
-            La contraseña debe tener al menos 8 caracteres, mayúsculas y minúsculas, números y al menos un carácter especial.
+            La contraseña debe tener al menos 8 caracteres, mayúsculas y
+            minúsculas, números y al menos un carácter especial.
           </div>
         </div>
 
@@ -134,7 +196,9 @@ export default function Register() {
           >
             <option value="">Selecciona una comuna</option>
             {comunasCuartaRegion.map((c, idx) => (
-              <option key={idx} value={c}>{c}</option>
+              <option key={idx} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </div>
@@ -174,6 +238,5 @@ export default function Register() {
         </Link>
       </div>
     </div>
-    
   );
 }

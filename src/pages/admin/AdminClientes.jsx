@@ -9,7 +9,10 @@ import {
   where,
   updateDoc,
 } from "firebase/firestore";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 
 import { db, auth } from "../../services/firebase";
 import { saveUserData } from "../../services/userService";
@@ -22,7 +25,7 @@ export default function AdminClientes() {
     nombre: "",
     email: "",
     comuna: "",
-    password: "", // ← AQUÍ: agregamos el campo contraseña
+    password: "",
   });
 
   const comunasCuartaRegion = [
@@ -43,7 +46,6 @@ export default function AdminClientes() {
     "Canela",
   ];
 
-  // 1) Cargar todos los clientes (tipo == "cliente")
   const cargarClientes = async () => {
     try {
       const q = query(
@@ -62,11 +64,21 @@ export default function AdminClientes() {
     }
   };
 
-  // 2) Guardar (crear o editar) cliente
   const guardar = async () => {
-    const { nombre, email, comuna, password } = formData;
+    const nombre = formData.nombre.trim();
+    const email = formData.email.trim().toLowerCase();
+    const comuna = formData.comuna.trim();
+    const password = formData.password;
 
-    // 2.1) Validar campos obligatorios
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return Swal.fire(
+        "Correo inválido",
+        "Por favor ingresa un correo válido",
+        "warning"
+      );
+    }
+
     if (!nombre || !email || !comuna) {
       return Swal.fire(
         "Campos incompletos",
@@ -75,7 +87,6 @@ export default function AdminClientes() {
       );
     }
 
-    // 2.2) Si es cliente nuevo, validar contraseña
     if (!clienteActivo && !password) {
       return Swal.fire(
         "Falta contraseña",
@@ -85,15 +96,9 @@ export default function AdminClientes() {
     }
 
     try {
-      // 2.3) Si estoy editando un cliente existente:
       if (clienteActivo) {
-        // Actualizo solo nombre y comuna en Firestore,
-        // no toco email ni contraseña en Auth.
         const clienteRef = doc(db, "usuarios", clienteActivo.id);
-        await updateDoc(clienteRef, {
-          nombre,
-          comuna,
-        });
+        await updateDoc(clienteRef, { nombre, comuna });
 
         Swal.fire(
           "Actualizado",
@@ -101,14 +106,11 @@ export default function AdminClientes() {
           "success"
         );
       } else {
-        // 2.4) Creación de cliente nuevo:
-        //     1) Verificar que no exista un cliente con ese email
         const emailExistente = clientes.find((c) => c.email === email);
         if (emailExistente) {
           return Swal.fire("Error", "Este correo ya está registrado", "error");
         }
 
-        //     2) Crear usuario en Firebase Auth
         const cred = await createUserWithEmailAndPassword(
           auth,
           email,
@@ -116,10 +118,8 @@ export default function AdminClientes() {
         );
         const user = cred.user;
 
-        //     3) Enviar correo de verificación
         await sendEmailVerification(user);
 
-        //     4) Guardar en Firestore con ID = user.uid
         await saveUserData(user.uid, {
           nombre,
           email,
@@ -134,7 +134,6 @@ export default function AdminClientes() {
         );
       }
 
-      // 2.5) Limpiar y recargar
       setShowModal(false);
       setClienteActivo(null);
       setFormData({ nombre: "", email: "", comuna: "", password: "" });
@@ -148,7 +147,6 @@ export default function AdminClientes() {
     }
   };
 
-  // 3) Eliminar cliente (solo de Firestore)
   const eliminar = async (id) => {
     const result = await Swal.fire({
       title: "¿Eliminar cliente?",
@@ -214,7 +212,6 @@ export default function AdminClientes() {
                   className="btn btn-warning btn-sm me-2"
                   onClick={() => {
                     setClienteActivo(c);
-                    // Al editar, no cambiamos contraseña
                     setFormData({
                       nombre: c.nombre,
                       email: c.email,
@@ -281,7 +278,7 @@ export default function AdminClientes() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    disabled={Boolean(clienteActivo)} // No se edita email
+                    disabled={Boolean(clienteActivo)}
                     required
                   />
                   <select
@@ -300,7 +297,6 @@ export default function AdminClientes() {
                     ))}
                   </select>
 
-                  {/* ← Input de contraseña: solo al crear un cliente nuevo */}
                   {!clienteActivo && (
                     <input
                       className="form-control mb-2"

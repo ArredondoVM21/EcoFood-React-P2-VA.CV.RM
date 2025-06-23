@@ -1,12 +1,12 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import CerrarSesion from '../../CerrarSesion';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import CerrarSesion from "../../CerrarSesion";
 
 export default function NavAdmin() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container">
-        <NavLink className="navbar-brand" to="">
+        <NavLink className="navbar-brand" to="/admin">
           EcoFood
         </NavLink>
         <button
@@ -24,7 +24,7 @@ export default function NavAdmin() {
         <div className="collapse navbar-collapse" id="adminNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/admin/productos" end>
+              <NavLink className="nav-link" to="/admin/productos">
                 Productos
               </NavLink>
             </li>

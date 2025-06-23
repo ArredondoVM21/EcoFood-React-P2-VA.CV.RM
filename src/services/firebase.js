@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
@@ -13,12 +13,14 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// app principal (para administrador)
-const app = initializeApp(firebaseConfig);
+// Inicializa solo si no está inicializado
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 
-// app secundaria (para registrar clientes sin cerrar sesión del admin)
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+// App secundaria para registrar sin cerrar sesión del admin
+const secondaryApp =
+  getApps().find((a) => a.name === "Secondary") ||
+  initializeApp(firebaseConfig, "Secondary");
 export const secondaryAuth = getAuth(secondaryApp);

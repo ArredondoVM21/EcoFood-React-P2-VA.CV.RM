@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import CardProducto from '../components/CardProducto';
-import CerrarSesion from '../components/CerrarSesion';
+import CardProducto from "../components/CardProducto";
+import CerrarSesion from "../components/CerrarSesion";
 import { getUserData } from "../services/userService";
-import { useAuth } from "../context/AuthContext"; 
+import { getProductosDisponibles } from "../services/PedidoService";
+import { useAuth } from "../context/AuthContext";
 
 function Home() {
   const { user } = useAuth();
   const [userData, setUserData] = useState(null);
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
@@ -14,8 +17,12 @@ function Home() {
       try {
         const datos = await getUserData(user.uid);
         setUserData(datos);
+        const productosDB = await getProductosDisponibles();
+        setProductos(productosDB);
       } catch (error) {
-        console.error("Error obteniendo datos de usuario:", error);
+        console.error("Error obteniendo datos:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetch();
@@ -35,7 +42,17 @@ function Home() {
         <CerrarSesion />
       </div>
 
-      <CardProducto nombre="Pan Integral" precio="$500" />
+      {loading ? (
+        <p>Cargando productos...</p>
+      ) : (
+        <div className="row">
+          {productos.map((prod) => (
+            <div className="col-md-4 mb-3" key={prod.id}>
+              <CardProducto nombre={prod.nombre} precio={`$${prod.precio}`} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
