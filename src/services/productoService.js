@@ -1,13 +1,13 @@
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
+import {
+  collection,
+  addDoc,
+  updateDoc,
   deleteDoc,
-  getDocs, 
-  doc, 
-  query, 
-  where, 
-  orderBy 
+  getDocs,
+  doc,
+  query,
+  where,
+  orderBy,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 
@@ -29,11 +29,22 @@ import { db, auth } from "./firebase";
  * @returns {Promise<Array<Object>>} — Lista de productos
  */
 export async function getProductosEmpresa() {
-  const uid = auth.currentUser.uid;
-  const productosRef = collection(db, "productos");
-  const q = query(productosRef, where("empresaId", "==", uid), orderBy("vencimiento", "asc"));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("Usuario no autenticado");
+
+    const productosRef = collection(db, "productos");
+    const q = query(
+      productosRef,
+      where("empresaId", "==", uid),
+      orderBy("vencimiento", "asc")
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error al obtener productos de la empresa:", error);
+    return [];
+  }
 }
 
 /**
@@ -42,33 +53,66 @@ export async function getProductosEmpresa() {
  * @returns {Promise<void>}
  */
 export async function crearProducto(datosProducto) {
-  const uid = auth.currentUser.uid;
-  const productosRef = collection(db, "productos");
-  await addDoc(productosRef, {
-    ...datosProducto,
-    empresaId: uid,
-  });
+  try {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("Usuario no autenticado");
+
+    const productosRef = collection(db, "productos");
+    await addDoc(productosRef, {
+      ...datosProducto,
+      empresaId: uid,
+    });
+  } catch (error) {
+    console.error("Error al crear producto:", error);
+    throw error;
+  }
 }
 
 /**
  * Actualiza un producto existente (por su ID).
- * @param {string} productoId 
+ * @param {string} productoId
  * @param {Object} datosActualizados — { nombre, descripcion, vencimiento, cantidad, precio, estado }
  * @returns {Promise<void>}
  */
 export async function actualizarProducto(productoId, datosActualizados) {
-  const prodRef = doc(db, "productos", productoId);
-  await updateDoc(prodRef, {
-    ...datosActualizados,
-  });
+  try {
+    const prodRef = doc(db, "productos", productoId);
+    await updateDoc(prodRef, {
+      ...datosActualizados,
+    });
+  } catch (error) {
+    console.error("Error al actualizar producto:", error);
+    throw error;
+  }
 }
 
 /**
  * Elimina un producto por ID.
- * @param {string} productoId 
+ * @param {string} productoId
  * @returns {Promise<void>}
  */
 export async function eliminarProducto(productoId) {
-  const prodRef = doc(db, "productos", productoId);
-  await deleteDoc(prodRef);
+  try {
+    const prodRef = doc(db, "productos", productoId);
+    await deleteDoc(prodRef);
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene todos los productos disponibles (para los clientes).
+ * @returns {Promise<Array<Object>>}
+ */
+export async function getProductosDisponibles() {
+  try {
+    const productosRef = collection(db, "productos");
+    const q = query(productosRef, orderBy("vencimiento", "asc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error al obtener productos disponibles:", error);
+    return [];
+  }
 }

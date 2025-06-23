@@ -10,23 +10,29 @@ export default function RecuperarContrasena() {
   const handleResetPassword = async (e) => {
     e.preventDefault();
 
-    if (!email) {
-      return Swal.fire("Error", "Por favor ingresa tu correo electrónico", "warning");
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      return Swal.fire(
+        "Campo vacío",
+        "Por favor ingresa tu correo electrónico",
+        "warning"
+      );
     }
 
     try {
-      await sendPasswordResetEmail(auth, email);
-      Swal.fire(
+      await sendPasswordResetEmail(auth, trimmedEmail);
+      return Swal.fire(
         "Correo enviado",
-        "Revisa tu correo electrónico para restablecer tu contraseña.",
+        "Revisa tu bandeja de entrada o carpeta de spam para restablecer tu contraseña.",
         "success"
       );
     } catch (error) {
-      let msg = "Ocurrió un error";
+      let msg = "Ocurrió un error al enviar el correo.";
       if (error.code === "auth/user-not-found") {
-        msg = "No se encontró una cuenta con ese correo";
+        msg = "No se encontró una cuenta con ese correo.";
       } else if (error.code === "auth/invalid-email") {
-        msg = "Correo inválido";
+        msg = "El correo electrónico ingresado no es válido.";
       }
       Swal.fire("Error", msg, "error");
     }
@@ -52,7 +58,6 @@ export default function RecuperarContrasena() {
         </button>
       </form>
 
-      {/* enlace de regreso al Login */}
       <div className="mt-3 text-center">
         <Link to="/login" className="text-decoration-none">
           ← Volver a Iniciar Sesión

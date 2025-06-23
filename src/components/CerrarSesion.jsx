@@ -9,17 +9,17 @@ export default function CerrarSesion() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      Swal.fire("Sesión cerrada", "Has cerrado sesión correctamente", "success");
+      Swal.fire(
+        "Sesión cerrada",
+        "Has cerrado sesión correctamente",
+        "success"
+      );
       navigate("/login");
     } catch (error) {
-      console.error("Error al cerrar sesión:", error); // Esto evita el warning de ESLint
+      console.error("Error al cerrar sesión:", error);
       Swal.fire("Error", "No se pudo cerrar la sesión", "error");
     }
   };
 
-  return (
-    <button onClick={handleLogout} className="btn btn-danger">
-      Cerrar Sesión
-    </button>
-  );
+  return <button onClick={handleLogout}>Cerrar Sesión</button>;
 }

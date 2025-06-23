@@ -17,9 +17,20 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    const emailClean = email.trim();
+    const passwordClean = password.trim();
+
+    if (!emailClean || !passwordClean) {
+      return Swal.fire("Campos vacíos", "Completa todos los campos", "warning");
+    }
+
     try {
       await setPersistence(auth, browserLocalPersistence);
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(
+        auth,
+        emailClean,
+        passwordClean
+      );
 
       if (!cred.user.emailVerified) {
         Swal.fire(
@@ -33,24 +44,32 @@ export default function Login() {
       const datos = await getUserData(cred.user.uid);
       console.log("Datos de usuario:", datos);
 
-      setTimeout(() => {
-        switch (datos.tipo) {
-          case "admin":
-            navigate("/admin/dashboard", { replace: true });
-            break;
-          case "cliente":
-            navigate("/cliente/dashboard", { replace: true });
-            break;
-          case "empresa":
-            navigate("/empresa/perfil", { replace: true });
-            break;
-          default:
-            Swal.fire("Error", "Tipo de usuario no reconocido", "error");
-        }
-      }, 0);
+      switch (datos.tipo) {
+        case "admin":
+          navigate("/admin/dashboard", { replace: true });
+          break;
+        case "cliente":
+          navigate("/cliente/dashboard", { replace: true });
+          break;
+        case "empresa":
+          navigate("/empresa/perfil", { replace: true });
+          break;
+        default:
+          Swal.fire("Error", "Tipo de usuario no reconocido", "error");
+      }
     } catch (error) {
       console.error("Error en login:", error.code, error.message);
-      Swal.fire("Error", "Credenciales incorrectas", "error");
+      let mensaje = "Credenciales incorrectas";
+
+      if (error.code === "auth/user-not-found") {
+        mensaje = "Usuario no encontrado";
+      } else if (error.code === "auth/wrong-password") {
+        mensaje = "Contraseña incorrecta";
+      } else if (error.code === "auth/invalid-email") {
+        mensaje = "Correo inválido";
+      }
+
+      Swal.fire("Error", mensaje, "error");
     }
   };
 

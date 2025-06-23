@@ -5,32 +5,31 @@ import dayjs from "dayjs";
 export default function ProductoModal({
   show,
   onClose,
-  onGuardar,      // callback para crear o actualizar
-  productoEdit,   // si viene, contiene datos para editar
+  onGuardar,
+  productoEdit,
 }) {
-  // Estado local con todos los campos, incluyendo cantidad
   const [form, setForm] = useState({
     nombre: "",
     descripcion: "",
     vencimiento: "",
-    cantidad: 1,    // <-- aquí sí usamos cantidad
+    cantidad: 1,
     precio: 0,
     estado: "disponible",
   });
 
-  // Si estamos editando, precarga valores
   useEffect(() => {
     if (productoEdit) {
       setForm({
         nombre: productoEdit.nombre,
         descripcion: productoEdit.descripcion,
-        vencimiento: productoEdit.vencimiento,
-        cantidad: productoEdit.cantidad,  // <-- uso aquí
+        vencimiento: productoEdit.vencimiento
+          ? dayjs(productoEdit.vencimiento).format("YYYY-MM-DD")
+          : "",
+        cantidad: productoEdit.cantidad,
         precio: productoEdit.precio,
         estado: productoEdit.estado,
       });
     } else {
-      // Si es “nuevo”, limpio
       setForm({
         nombre: "",
         descripcion: "",
@@ -42,31 +41,34 @@ export default function ProductoModal({
     }
   }, [productoEdit]);
 
-  // Manejar cambios de inputs, incluyendo cantidad
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]:
-        name === "cantidad" || name === "precio"
-          ? Number(value)
-          : value,
+      [name]: name === "cantidad" || name === "precio" ? Number(value) : value,
     }));
   };
 
-  // Al enviar, validamos y llamamos a onGuardar con todo el form
   const handleSubmit = (e) => {
     e.preventDefault();
     const { nombre, descripcion, vencimiento, cantidad, precio, estado } = form;
-    if (!nombre || !descripcion || !vencimiento) {
+
+    if (!nombre.trim() || !descripcion.trim() || !vencimiento) {
       return alert("Completa todos los campos obligatorios.");
     }
-    // Validar que la fecha no esté en el pasado
+
     if (dayjs(vencimiento).isBefore(dayjs(), "day")) {
       return alert("La fecha de vencimiento no puede ser anterior a hoy.");
     }
-    // Si llegamos aquí, sí usamos 'cantidad' y 'precio'
-    onGuardar({ nombre, descripcion, vencimiento, cantidad, precio, estado });
+
+    onGuardar({
+      nombre: nombre.trim(),
+      descripcion: descripcion.trim(),
+      vencimiento,
+      cantidad,
+      precio,
+      estado,
+    });
   };
 
   return (
